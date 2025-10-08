@@ -19,7 +19,7 @@
                     attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
       >
       </l-tile-layer>
-      <l-marker v-for="arcade in arcades.features.slice(0,10)" :lat-lng="arcade.geometry.coordinates.reverse()"></l-marker>
+      <l-marker v-for="arcade in arcades.features.slice(0,150)" :lat-lng="arcade.geometry.coordinates.reverse()"></l-marker>
     </l-map>
   </main>
 </template>
