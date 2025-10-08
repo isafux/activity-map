@@ -1,3 +1,5 @@
+/* eslint-disable vue/no-reserved-component-names */
+/* eslint-disable vue/multi-word-component-names */
 import { createApp } from 'vue';
 import './output.css';
 import App from './App.vue';
@@ -7,6 +9,9 @@ import 'tailwindcss-primeui'
 import 'primeicons/primeicons.css'
 import { Form } from '@primevue/forms';
 import { InputText, Button, Checkbox, CheckboxGroup, Message } from 'primevue';
+
+import "leaflet/dist/leaflet.css";
+import { LMap, LTileLayer } from "@vue-leaflet/vue-leaflet";
 
 const app = createApp(App);
 // app.use(PrimeVue, { unstyled: true });
@@ -27,5 +32,8 @@ app.component('Button', Button);
 app.component('Checkbox', Checkbox);
 app.component('CheckboxGroup', CheckboxGroup);
 app.component('Message', Message);
+
+app.component('LMap', LMap);
+app.component('LTileLayer', LTileLayer);
 
 app.mount('#app');
