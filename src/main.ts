@@ -11,7 +11,7 @@ import { Form } from '@primevue/forms';
 import { InputText, Button, Checkbox, CheckboxGroup, Message } from 'primevue';
 
 import "leaflet/dist/leaflet.css";
-import { LMap, LTileLayer } from "@vue-leaflet/vue-leaflet";
+import { LMap, LTileLayer, LGeoJson } from "@vue-leaflet/vue-leaflet";
 
 const app = createApp(App);
 // app.use(PrimeVue, { unstyled: true });
@@ -35,5 +35,6 @@ app.component('Message', Message);
 
 app.component('LMap', LMap);
 app.component('LTileLayer', LTileLayer);
+app.component('LGeoJson', LGeoJson);
 
 app.mount('#app');

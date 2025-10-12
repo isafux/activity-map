@@ -1,7 +1,7 @@
 <script lang="ts" setup>
     import { ref } from "vue";
-    import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet"
     import "leaflet/dist/leaflet.css";
+    import { LMap, LTileLayer, LMarker, LGeoJson } from "@vue-leaflet/vue-leaflet";
 
     import arcades from "../assets/arcades.json";
 
@@ -12,15 +12,15 @@
 <template>
   <main>
     <h1>My Map</h1>
-    <l-map v-model:zoom="zoom" v-model:center="center" :use-global-leaflet="false">
-      <l-tile-layer url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+    <LMap v-model:zoom="zoom" v-model:center="center" :use-global-leaflet="false">
+      <LTileLayer url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
                     layer-type="base"
                     name="Stadia Maps Basemap"
                     attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-      >
-      </l-tile-layer>
-      <l-marker v-for="arcade in arcades.features.slice(0,150)" :lat-lng="arcade.geometry.coordinates.reverse()"></l-marker>
-    </l-map>
+      />
+      <LMarker v-for="arcade in arcades.features.slice(0,150)" :lat-lng="arcade.geometry.coordinates.reverse()"></LMarker>
+      <LGeoJson></LGeoJson>
+    </LMap>
   </main>
 </template>
 

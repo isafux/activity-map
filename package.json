@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mapbox/togeojson": "^0.16.2",
     "@primeuix/themes": "^1.2.5",
     "@primevue/forms": "^4.4.1",
     "@tailwindcss/cli": "^4.1.14",
