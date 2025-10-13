@@ -5,27 +5,27 @@ import './output.css';
 import App from './App.vue';
 import PrimeVue from 'primevue/config';
 import Aura from '@primeuix/themes/aura';
-import 'tailwindcss-primeui'
-import 'primeicons/primeicons.css'
+import 'tailwindcss-primeui';
+import 'primeicons/primeicons.css';
 import { Form } from '@primevue/forms';
 import { InputText, Button, Checkbox, CheckboxGroup, Message } from 'primevue';
 
-import { LMap, LTileLayer, LGeoJson } from "@vue-leaflet/vue-leaflet";
-import "leaflet/dist/leaflet.css";
+import { LMap, LTileLayer, LGeoJson, LMarker } from '@vue-leaflet/vue-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const app = createApp(App);
 // app.use(PrimeVue, { unstyled: true });
 app.use(PrimeVue, {
-    theme: {
-        preset: Aura,
-        options: {
-            prefix: 'p',
-            darkModeSelector: 'system',
-            cssLayer: false
-        }
-    }
- });
- 
+  theme: {
+    preset: Aura,
+    options: {
+      prefix: 'p',
+      darkModeSelector: 'system',
+      cssLayer: false,
+    },
+  },
+});
+
 app.component('Form', Form);
 app.component('InputText', InputText);
 app.component('Button', Button);
@@ -36,5 +36,6 @@ app.component('Message', Message);
 app.component('LMap', LMap);
 app.component('LTileLayer', LTileLayer);
 app.component('LGeoJson', LGeoJson);
+app.component('LMarker', LMarker);
 
 app.mount('#app');

@@ -1,114 +1,146 @@
 <script lang="ts" setup>
-  import { onMounted, ref } from "vue";
-  import type { FeatureCollection } from 'geojson';
-  import "leaflet/dist/leaflet.css";
-  import { LMap, LTileLayer, LMarker, LGeoJson } from "@vue-leaflet/vue-leaflet";
+  import { onMounted, ref } from 'vue';
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
+  import {
+    LMap,
+    LTileLayer,
+    LGeoJson,
+    LMarker,
+  } from '@vue-leaflet/vue-leaflet';
+  import type {
+    FeatureCollection,
+    Point,
+    LineString,
+    Polygon,
+    Geometry,
+    GeoJSON,
+  } from 'geojson';
+  import { geoJsonService } from '../services/GeoJsonService';
+  import { StyleService } from '../services/StyleService';
+  import type { MarkerData } from '../types/Marker';
 
-  import arcades from "../assets/arcades.json";
-
-  let zoom = ref(12);
+  let zoom = ref(13);
   let center = ref([47.27597672492266, 11.447581071406603]);
 
-  const geoJsonFiles = ref<string[]>([]);
   const geoJsonData = ref<FeatureCollection[]>([]);
-  const geoJson = ref<FeatureCollection | null>(null);
-  const geoJsonStyle = {
-    color: '#22ddee',
-    weight: 3,
-    opacity: 0.8
-  };
-  const geoJsonStyle2 = {
-    color: '#aa33dd',
-    weight: 3,
-    opacity: 0.5
+  const geoMarkers = ref<MarkerData[]>([]);
+  const geoJsonStyle = (feature?: GeoJSON.Feature): L.PathOptions => {
+    const color = feature?.properties?.color || '#33eedd';
+    return {
+      color: color,
+      weight: 3,
+      opacity: 0.5,
+    };
   };
 
   onMounted(async () => {
-    try {
-      const response = await fetch(
-        '/geojson/20624896341.geojson'
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to load GeoJSON: ${response.statusText}`);
+    // Load all GeoJSON data
+    const geoJsons = await geoJsonService.loadAll();
+    geoJsonData.value = geoJsons;
+
+    // Loop through each GeoJSON and create markers at the starting points
+    geoJsons.forEach((geoJson, index) => {
+      const color = StyleService.generateRandomColor(40, 60, 0.7);
+
+      // Check if features exist and have a valid starting point
+      if (geoJson.features && geoJson.features.length) {
+        const firstFeature = geoJson.features[0];
+
+        if (
+          firstFeature &&
+          firstFeature.geometry &&
+          hasCoordinates(firstFeature.geometry)
+        ) {
+          const startPoint = firstFeature.geometry?.coordinates[0];
+
+          if (firstFeature.properties) {
+            firstFeature.properties.color = color;
+          }
+
+          // Ensure startPoint exists
+          if (isValidLatLngArray(startPoint)) {
+            // Create a marker at the starting point
+            geoMarkers.value.push({
+              latLng: [startPoint[1], startPoint[0]],
+              color: color,
+              pathIndex: index + 1, // Optional: Index or name of the path
+            });
+          }
+        }
       }
-      geoJson.value = await response.json() as FeatureCollection;
-    } catch (error) {
-      console.error('Error loading GeoJSON:', error);
-    }
-
-    // Load the manifest file listing all GeoJSON filenames
-    const res = await fetch("/geojson/geojson-list.json");
-    if (!res.ok) {
-      console.error("Failed to load GeoJSON list manifest");
-      return;
-    }
-    geoJsonFiles.value = await res.json();
-    console.log(geoJsonFiles.value);
-    
-
-    // Load all GeoJSON files concurrently
-    const loadedGeoJsons = await Promise.all(
-      geoJsonFiles.value.map(file => loadGeoJsonFile(file))
-    );
-
-    // Filter out failed loads
-    geoJsonData.value = loadedGeoJsons.filter((g): g is FeatureCollection => !!g);
+    });
   });
 
-  async function loadGeoJsonFile(filename: string) {
-    try {
-      const res = await fetch(`/geojson/${filename}`);
-      if (!res.ok) throw new Error(`Failed to load ${filename}`);
-      return await res.json() as FeatureCollection;
-    } catch (e) {
-      console.error(e);
-      return null;
-    }
-  }
+  // Helper function to get a custom marker icon based on the color
+  const getMarkerIcon = (color: string) => {
+    return new L.DivIcon({
+      html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%;"></div>`,
+      className: 'leaflet-div-icon',
+    }) as L.Icon<L.IconOptions>;
+  };
 
-  function fixCoordinateOrder(featureCollection: FeatureCollection): FeatureCollection {
-    return {
-      ...featureCollection,
-      features: featureCollection.features.map((feature) => {
-        if (feature.geometry.type === "LineString") {
-          return {
-            ...feature,
-            geometry: {
-              ...feature.geometry,
-              coordinates: feature.geometry.coordinates.map(([a, b, z]) => [b, a]) // swap lat/lng
-            }
-          };
-        }
-        return feature;
-      })
-    };
+  // This function checks if the geometry is of a type that has coordinates
+  const hasCoordinates = (
+    geometry: Geometry,
+  ): geometry is Point | LineString | Polygon => {
+    return 'coordinates' in geometry;
+  };
+
+  // Type guard for checking if the array contains numbers
+  function isValidLatLngArray(arr: any): arr is [number, number, number?] {
+    return (
+      Array.isArray(arr) &&
+      arr.length === 3 &&
+      typeof arr[0] === 'number' &&
+      typeof arr[1] === 'number' &&
+      !isNaN(arr[0]) &&
+      !isNaN(arr[1]) &&
+      (typeof arr[2] === 'number' || arr[2] === undefined) // Optional: check the third value
+    );
   }
 </script>
 
 <template>
   <main>
-    <LMap v-model:zoom="zoom" v-model:center="center" :use-global-leaflet="false">
-      <LTileLayer url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
-                  layer-type="base"
-                  name="Stadia Maps Basemap"
-                  attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    <LMap
+      v-model:zoom="zoom"
+      v-model:center="center"
+      :use-global-leaflet="false"
+    >
+      <LTileLayer
+        url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+        layer-type="base"
+        name="Stadia Maps Basemap"
+        attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
       />
-      <LMarker :lat-lng="[47.27597672492266, 11.447581071406603]" />
-      <LGeoJson v-if="geoJson" :geojson="geoJson" :optionsStyle="geoJsonStyle"></LGeoJson>
+      <LMarker
+        v-for="(marker, index) in geoMarkers"
+        :key="index"
+        :lat-lng="marker.latLng"
+        :icon="getMarkerIcon(marker.color)"
+      >
+        <template #tooltip>
+          {{ marker.pathIndex }}
+        </template>
+      </LMarker>
       <LGeoJson
         v-for="(geojson, index) in geoJsonData"
         :key="index"
         :geojson="geojson"
-        :optionsStyle="geoJsonStyle2"
-      />
+        :optionsStyle="geoJsonStyle(geojson.features.at(0))"
+      >
+        <template #tooltip>
+          {{ geojson.features.at(0)?.properties?.name }}
+        </template>
+      </LGeoJson>
     </LMap>
   </main>
 </template>
-  <!-- <LMarker v-for="arcade in arcades.features.slice(0,150)" :lat-lng="arcade.geometry.coordinates.reverse()"></LMarker> -->
 
 <style scoped>
-    main {
-      width: 100%;
-      height: 100vh;
-    }
+  main {
+    width: 100%;
+    height: 100vh;
+  }
 </style>

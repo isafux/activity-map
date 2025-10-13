@@ -1,14 +1,13 @@
 <script lang="ts" setup>
-import MapView from './components/MapView.vue';
-import TaskView from './components/TaskView.vue';
+  import MapView from './components/MapView.vue';
+  // import TaskView from './components/TaskView.vue';
 </script>
 
 <template>
   <main>
-      <MapView />
-      <TaskView />
+    <MapView />
+    <!-- <TaskView /> -->
   </main>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
