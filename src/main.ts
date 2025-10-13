@@ -10,8 +10,8 @@ import 'primeicons/primeicons.css'
 import { Form } from '@primevue/forms';
 import { InputText, Button, Checkbox, CheckboxGroup, Message } from 'primevue';
 
-import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LGeoJson } from "@vue-leaflet/vue-leaflet";
+import "leaflet/dist/leaflet.css";
 
 const app = createApp(App);
 // app.use(PrimeVue, { unstyled: true });

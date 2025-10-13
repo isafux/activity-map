@@ -3,7 +3,9 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "types": ["vite/client"],
-
+    "target": "ES2023",               
+    "lib": ["DOM", "ES2023"],
+    
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
@@ -11,6 +13,9 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
+  },
+  "vueCompilerOptions": {
+    "globalTypesPath": "./node_modules/vue/types/global.d.ts"  // Path to the global types file
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

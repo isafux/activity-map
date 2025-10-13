@@ -1,0 +1,47 @@
+# Set input and output folders
+$inputFolder = ".\public\gpx"
+$outputFolder = ".\public\geojson"
+$manifestFile = Join-Path $outputFolder "geojson-list.json"
+
+# Ensure output folder exists
+New-Item -ItemType Directory -Force -Path $outputFolder | Out-Null
+
+# Initialize array for manifest filenames
+$geojsonFiles = @()
+
+# Get clean UTF-8 encoding without BOM
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+
+# Loop over GPX files
+Get-ChildItem -Path $inputFolder -Filter *.gpx | ForEach-Object {
+    $inputFile = $_.FullName
+    $outputFileName = $_.BaseName + ".geojson"
+    $outputFile = Join-Path $outputFolder $outputFileName
+
+    if (-Not (Test-Path $outputFile)) {
+        try {
+            $geojsonContent = & togeojson $inputFile | Out-String
+            if ($geojsonContent.Trim().Length -gt 0) {
+                [System.IO.File]::WriteAllText($outputFile, $geojsonContent, $utf8NoBom)
+                Write-Host "✅ Converted: $($_.Name)"
+            } else {
+                Write-Host "⚠️ Empty output for: $($_.Name)"
+            }
+        } catch {
+            Write-Host "❌ Error converting $($_.Name): $_"
+        }
+    } else {
+        Write-Host "⏭️ Skipped (exists): $outputFileName"
+    }
+
+    $geojsonFiles += $outputFileName
+}
+
+# Write manifest JSON (also without BOM)
+try {
+    $manifestJson = $geojsonFiles | ConvertTo-Json -Depth 3
+    [System.IO.File]::WriteAllText($manifestFile, $manifestJson, $utf8NoBom)
+    Write-Host "📄 Manifest created at: $manifestFile"
+} catch {
+    Write-Host "❌ Error writing manifest: $_"
+}
