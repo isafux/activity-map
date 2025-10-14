@@ -1,7 +1,7 @@
 // Last activity runs into an error, so limit is incremented by 1 in activityUrl
 // Specify the file extension (change 'fit' below to 'fit', 'tcx', 'gpx', or 'csv' depending on which format you want to export)
 const fileExtension = 'gpx';
-const limit = 10;
+const limit = 100;
 
 if (localStorage.token) {
     const header = {

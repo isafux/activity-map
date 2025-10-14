@@ -7,6 +7,7 @@
     LTileLayer,
     LGeoJson,
     LMarker,
+    LTooltip,
   } from '@vue-leaflet/vue-leaflet';
   import type {
     FeatureCollection,
@@ -64,7 +65,7 @@
             geoMarkers.value.push({
               latLng: [startPoint[1], startPoint[0]],
               color: color,
-              pathIndex: index + 1, // Optional: Index or name of the path
+              pathIndex: firstFeature.properties?.name, // Optional: Index or name of the path
             });
           }
         }
@@ -75,7 +76,7 @@
   // Helper function to get a custom marker icon based on the color
   const getMarkerIcon = (color: string) => {
     return new L.DivIcon({
-      html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%;"></div>`,
+      html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; pointer-events: auto;"></div>`,
       className: 'leaflet-div-icon',
     }) as L.Icon<L.IconOptions>;
   };
@@ -99,6 +100,41 @@
       (typeof arr[2] === 'number' || arr[2] === undefined) // Optional: check the third value
     );
   }
+
+  function capitalizeFirstLetter(text: string): string {
+    if (!text) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  /**
+   * Formats an ISO timestamp string into a human-readable date.
+   *
+   * @param isoString - The ISO timestamp (e.g. "2025-10-08T09:04:50.000Z")
+   * @param locale - Optional locale (default: "en-US")
+   * @param options - Optional Intl.DateTimeFormat options
+   * @returns A formatted date string
+   */
+  function formatDate(
+    isoString: string,
+    locale: string = 'en-US',
+    options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+    },
+  ): string {
+    const date = new Date(isoString);
+
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date string:', isoString);
+      return isoString; // fallback
+    }
+
+    return new Intl.DateTimeFormat(locale, options).format(date);
+  }
 </script>
 
 <template>
@@ -120,9 +156,7 @@
         :lat-lng="marker.latLng"
         :icon="getMarkerIcon(marker.color)"
       >
-        <template #tooltip>
-          {{ marker.pathIndex }}
-        </template>
+        <LTooltip> {{ marker.pathIndex }} </LTooltip>
       </LMarker>
       <LGeoJson
         v-for="(geojson, index) in geoJsonData"
@@ -130,9 +164,17 @@
         :geojson="geojson"
         :optionsStyle="geoJsonStyle(geojson.features.at(0))"
       >
-        <template #tooltip>
-          {{ geojson.features.at(0)?.properties?.name }}
-        </template>
+        <LTooltip>
+          <h2>
+            {{
+              capitalizeFirstLetter(geojson.features.at(0)?.properties?.type)
+            }}
+          </h2>
+          <p>{{ geojson.features.at(0)?.properties?.name }}</p>
+          <p>
+            {{ formatDate(geojson.features.at(0)?.properties?.time, 'de-DE') }}
+          </p>
+        </LTooltip>
       </LGeoJson>
     </LMap>
   </main>
