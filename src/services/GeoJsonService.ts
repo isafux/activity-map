@@ -1,6 +1,50 @@
-import type { FeatureCollection } from 'geojson';
+import type { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
+import L from 'leaflet';
+import { GuardService } from './GuardService';
+import { StyleService } from './StyleService';
+import type { MarkerData } from '../types/Marker';
 
 class GeoJsonService {
+  // Loop through each GeoJSON and create markers at the starting points
+  public async loadMarkersAndColors(
+    geoJsons: FeatureCollection<Geometry, GeoJsonProperties>[],
+  ): Promise<MarkerData[]> {
+    const geoMarkers: MarkerData[] = [];
+
+    geoJsons.forEach((geoJson) => {
+      const color = StyleService.generateRandomColor(40, 60, 0.7);
+
+      // Check if features exist and have a valid starting point
+      if (geoJson.features && geoJson.features.length) {
+        const firstFeature = geoJson.features[0];
+
+        if (
+          firstFeature &&
+          firstFeature.geometry &&
+          GuardService.hasCoordinates(firstFeature.geometry)
+        ) {
+          const startPoint = firstFeature.geometry?.coordinates[0];
+
+          if (firstFeature.properties) {
+            firstFeature.properties.color = color;
+          }
+
+          // Ensure startPoint exists
+          if (GuardService.isValidLatLngArray(startPoint)) {
+            // Create a marker at the starting point
+            geoMarkers.push({
+              latLng: [startPoint[1], startPoint[0]],
+              color: color,
+              pathIndex: firstFeature.properties?.name, // Optional: Index or name of the path
+            });
+          }
+        }
+      }
+    });
+
+    return geoMarkers;
+  }
+
   public async loadAll(): Promise<FeatureCollection[]> {
     const res: Response = await fetch('/geojson/geojson-list.json');
 
@@ -63,6 +107,14 @@ class GeoJsonService {
       console.error(`Error loading ${fileName}:`, e);
       return null;
     }
+  }
+
+  // Helper function to get a custom marker icon based on the color
+  public getMarkerIcon(color: string) {
+    return new L.DivIcon({
+      html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; pointer-events: auto;"></div>`,
+      className: 'leaflet-div-icon',
+    }) as L.Icon<L.IconOptions>;
   }
 }
 

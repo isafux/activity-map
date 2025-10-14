@@ -9,16 +9,12 @@
     LMarker,
     LTooltip,
   } from '@vue-leaflet/vue-leaflet';
-  import type {
-    FeatureCollection,
-    Point,
-    LineString,
-    Polygon,
-    Geometry,
-    GeoJSON,
-  } from 'geojson';
+  import type { FeatureCollection, GeoJSON } from 'geojson';
   import { geoJsonService } from '../services/GeoJsonService';
   import { StyleService } from '../services/StyleService';
+  import { FormatService } from '../services/FormatService';
+  import { GuardService } from '../services/GuardService';
+
   import type { MarkerData } from '../types/Marker';
 
   let zoom = ref(13);
@@ -51,7 +47,7 @@
         if (
           firstFeature &&
           firstFeature.geometry &&
-          hasCoordinates(firstFeature.geometry)
+          GuardService.hasCoordinates(firstFeature.geometry)
         ) {
           const startPoint = firstFeature.geometry?.coordinates[0];
 
@@ -60,7 +56,7 @@
           }
 
           // Ensure startPoint exists
-          if (isValidLatLngArray(startPoint)) {
+          if (GuardService.isValidLatLngArray(startPoint)) {
             // Create a marker at the starting point
             geoMarkers.value.push({
               latLng: [startPoint[1], startPoint[0]],
@@ -72,73 +68,11 @@
       }
     });
   });
-
-  // Helper function to get a custom marker icon based on the color
-  const getMarkerIcon = (color: string) => {
-    return new L.DivIcon({
-      html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; pointer-events: auto;"></div>`,
-      className: 'leaflet-div-icon',
-    }) as L.Icon<L.IconOptions>;
-  };
-
-  // This function checks if the geometry is of a type that has coordinates
-  const hasCoordinates = (
-    geometry: Geometry,
-  ): geometry is Point | LineString | Polygon => {
-    return 'coordinates' in geometry;
-  };
-
-  // Type guard for checking if the array contains numbers
-  function isValidLatLngArray(arr: any): arr is [number, number, number?] {
-    return (
-      Array.isArray(arr) &&
-      arr.length === 3 &&
-      typeof arr[0] === 'number' &&
-      typeof arr[1] === 'number' &&
-      !isNaN(arr[0]) &&
-      !isNaN(arr[1]) &&
-      (typeof arr[2] === 'number' || arr[2] === undefined) // Optional: check the third value
-    );
-  }
-
-  function capitalizeFirstLetter(text: string): string {
-    if (!text) return text;
-    return text.charAt(0).toUpperCase() + text.slice(1);
-  }
-
-  /**
-   * Formats an ISO timestamp string into a human-readable date.
-   *
-   * @param isoString - The ISO timestamp (e.g. "2025-10-08T09:04:50.000Z")
-   * @param locale - Optional locale (default: "en-US")
-   * @param options - Optional Intl.DateTimeFormat options
-   * @returns A formatted date string
-   */
-  function formatDate(
-    isoString: string,
-    locale: string = 'en-US',
-    options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'UTC',
-    },
-  ): string {
-    const date = new Date(isoString);
-
-    if (isNaN(date.getTime())) {
-      console.warn('Invalid date string:', isoString);
-      return isoString; // fallback
-    }
-
-    return new Intl.DateTimeFormat(locale, options).format(date);
-  }
 </script>
 
 <template>
   <main>
+    <!-- <checkbox v-for="value in source">{{  }}</checkbox> -->
     <LMap
       v-model:zoom="zoom"
       v-model:center="center"
@@ -154,7 +88,7 @@
         v-for="(marker, index) in geoMarkers"
         :key="index"
         :lat-lng="marker.latLng"
-        :icon="getMarkerIcon(marker.color)"
+        :icon="geoJsonService.getMarkerIcon(marker.color)"
       >
         <LTooltip> {{ marker.pathIndex }} </LTooltip>
       </LMarker>
@@ -167,12 +101,19 @@
         <LTooltip>
           <h2>
             {{
-              capitalizeFirstLetter(geojson.features.at(0)?.properties?.type)
+              FormatService.capitalizeFirstLetter(
+                geojson.features.at(0)?.properties?.type,
+              )
             }}
           </h2>
           <p>{{ geojson.features.at(0)?.properties?.name }}</p>
           <p>
-            {{ formatDate(geojson.features.at(0)?.properties?.time, 'de-DE') }}
+            {{
+              FormatService.formatDate(
+                geojson.features.at(0)?.properties?.time,
+                'de-DE',
+              )
+            }}
           </p>
         </LTooltip>
       </LGeoJson>
