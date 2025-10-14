@@ -10,9 +10,6 @@ import 'primeicons/primeicons.css';
 import { Form } from '@primevue/forms';
 import { InputText, Button, Checkbox, CheckboxGroup, Message } from 'primevue';
 
-import { LMap, LTileLayer, LGeoJson, LMarker } from '@vue-leaflet/vue-leaflet';
-import 'leaflet/dist/leaflet.css';
-
 const app = createApp(App);
 // app.use(PrimeVue, { unstyled: true });
 app.use(PrimeVue, {
@@ -32,10 +29,5 @@ app.component('Button', Button);
 app.component('Checkbox', Checkbox);
 app.component('CheckboxGroup', CheckboxGroup);
 app.component('Message', Message);
-
-app.component('LMap', LMap);
-app.component('LTileLayer', LTileLayer);
-app.component('LGeoJson', LGeoJson);
-app.component('LMarker', LMarker);
 
 app.mount('#app');

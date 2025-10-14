@@ -20,12 +20,31 @@ Get-ChildItem -Path $inputFolder -Filter *.gpx | ForEach-Object {
 
     if (-Not (Test-Path $outputFile)) {
         try {
-            $geojsonContent = & togeojson $inputFile | Out-String
-            if ($geojsonContent.Trim().Length -gt 0) {
-                [System.IO.File]::WriteAllText($outputFile, $geojsonContent, $utf8NoBom)
-                Write-Host "✅ Converted: $($_.Name)"
+            # Load the GPX file as XML
+            [xml]$gpxXml = Get-Content -Path $inputFile
+
+            # Check if any <trkseg> elements have <trkpt> children
+            $trksegElements = $gpxXml.gpx.trk.trkseg
+            $validTrack = $false
+
+            foreach ($trkseg in $trksegElements) {
+                if ($trkseg.trkpt.Count -gt 0) {
+                    $validTrack = $true
+                    break
+                }
+            }
+
+            # Proceed only if we have valid track points
+            if ($validTrack) {
+                $geojsonContent = & togeojson $inputFile | Out-String
+                if ($geojsonContent.Trim().Length -gt 0) {
+                    [System.IO.File]::WriteAllText($outputFile, $geojsonContent, $utf8NoBom)
+                    Write-Host "✅ Converted: $($_.Name)"
+                } else {
+                    Write-Host "⚠️ Empty output for: $($_.Name)"
+                }
             } else {
-                Write-Host "⚠️ Empty output for: $($_.Name)"
+                Write-Host "⚠️ No track points in: $($_.Name), skipped"
             }
         } catch {
             Write-Host "❌ Error converting $($_.Name): $_"
