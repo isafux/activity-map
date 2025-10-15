@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import { onMounted, ref } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import L from 'leaflet';
   import 'leaflet/dist/leaflet.css';
   import {
@@ -11,17 +11,13 @@
   } from '@vue-leaflet/vue-leaflet';
   import type { FeatureCollection, GeoJSON } from 'geojson';
   import { geoJsonService } from '../services/GeoJsonService';
-  import { StyleService } from '../services/StyleService';
   import { FormatService } from '../services/FormatService';
-  import { GuardService } from '../services/GuardService';
 
   import type { MarkerData } from '../types/Marker';
 
   let zoom = ref(13);
   let center = ref([47.27597672492266, 11.447581071406603]);
 
-  const geoJsonData = ref<FeatureCollection[]>([]);
-  const geoMarkers = ref<MarkerData[]>([]);
   const geoJsonStyle = (feature?: GeoJSON.Feature): L.PathOptions => {
     const color = feature?.properties?.color || '#33eedd';
     return {
@@ -31,48 +27,75 @@
     };
   };
 
-  onMounted(async () => {
-    // Load all GeoJSON data
-    const geoJsons = await geoJsonService.loadAll();
-    geoJsonData.value = geoJsons;
-
-    // Loop through each GeoJSON and create markers at the starting points
-    geoJsons.forEach((geoJson, index) => {
-      const color = StyleService.generateRandomColor(40, 60, 0.7);
-
-      // Check if features exist and have a valid starting point
-      if (geoJson.features && geoJson.features.length) {
-        const firstFeature = geoJson.features[0];
-
-        if (
-          firstFeature &&
-          firstFeature.geometry &&
-          GuardService.hasCoordinates(firstFeature.geometry)
-        ) {
-          const startPoint = firstFeature.geometry?.coordinates[0];
-
-          if (firstFeature.properties) {
-            firstFeature.properties.color = color;
-          }
-
-          // Ensure startPoint exists
-          if (GuardService.isValidLatLngArray(startPoint)) {
-            // Create a marker at the starting point
-            geoMarkers.value.push({
-              latLng: [startPoint[1], startPoint[0]],
-              color: color,
-              pathIndex: firstFeature.properties?.name, // Optional: Index or name of the path
-            });
-          }
-        }
-      }
+  const geoJsonData = ref<FeatureCollection[]>([]);
+  const filteredGeoJsonData = computed<FeatureCollection[]>(() => {
+    return geoJsonData.value.filter((geoData) => {
+      const type = geoData.features.at(0)?.properties?.type;
+      return selectedActivityTypes.value.includes(type);
     });
+  });
+
+  const geoMarkers = ref<MarkerData[]>([]);
+  const filteredGeoMarkers = computed<MarkerData[]>(() => {
+    return geoMarkers.value.filter((marker) => {
+      const type = marker.activityType;
+      return selectedActivityTypes.value.includes(type);
+    });
+  });
+
+  const activityTypes = ref<Set<string>>(new Set());
+  const selectedActivityTypes = ref<string[]>([]);
+  const checkAllActivityTypes = computed({
+    get() {
+      return (
+        activityTypes.value.size > 0 &&
+        selectedActivityTypes.value.length === activityTypes.value.size
+      );
+    },
+    set(isChecked) {
+      if (isChecked) {
+        // If "All" is checked, add all activity types to selectedActivityTypes
+        selectedActivityTypes.value = [...activityTypes.value];
+      } else {
+        // If "All" is unchecked, clear selectedActivityTypes
+        selectedActivityTypes.value = [];
+      }
+    },
+  });
+
+  onMounted(async () => {
+    const geoJsons = await geoJsonService.loadAll();
+
+    geoJsonData.value = geoJsons;
+    geoMarkers.value = await geoJsonService.getMarkersAndBindColors(
+      geoJsons,
+      activityTypes.value,
+    );
   });
 </script>
 
 <template>
   <main>
-    <!-- <checkbox v-for="value in source">{{  }}</checkbox> -->
+    <div class="filter-activity-wrapper absolute">
+      <template
+        v-for="type in activityTypes"
+        :key="type"
+      >
+        <Checkbox
+          :inputId="`checkbox-${type}`"
+          :value="type"
+          v-model="selectedActivityTypes"
+        />
+        <label :for="`checkbox-${type}`">{{ type }}</label>
+      </template>
+      <Checkbox
+        :inputId="'checkbox-all'"
+        :value="'all'"
+        v-model="checkAllActivityTypes"
+        binary
+      />
+      <label :for="'checkbox-all'">All</label>
+    </div>
     <LMap
       v-model:zoom="zoom"
       v-model:center="center"
@@ -85,7 +108,7 @@
         attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
       />
       <LMarker
-        v-for="(marker, index) in geoMarkers"
+        v-for="(marker, index) in filteredGeoMarkers"
         :key="index"
         :lat-lng="marker.latLng"
         :icon="geoJsonService.getMarkerIcon(marker.color)"
@@ -93,19 +116,12 @@
         <LTooltip> {{ marker.pathIndex }} </LTooltip>
       </LMarker>
       <LGeoJson
-        v-for="(geojson, index) in geoJsonData"
+        v-for="(geojson, index) in filteredGeoJsonData"
         :key="index"
         :geojson="geojson"
         :optionsStyle="geoJsonStyle(geojson.features.at(0))"
       >
         <LTooltip>
-          <h2>
-            {{
-              FormatService.capitalizeFirstLetter(
-                geojson.features.at(0)?.properties?.type,
-              )
-            }}
-          </h2>
           <p>{{ geojson.features.at(0)?.properties?.name }}</p>
           <p>
             {{
@@ -124,6 +140,6 @@
 <style scoped>
   main {
     width: 100%;
-    height: 100vh;
+    height: calc(100vh - 25px);
   }
 </style>

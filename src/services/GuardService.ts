@@ -1,4 +1,10 @@
-import type { Geometry, LineString, Point, Polygon } from 'geojson';
+import type {
+  FeatureCollection,
+  Geometry,
+  LineString,
+  Point,
+  Polygon,
+} from 'geojson';
 
 export class GuardService {
   // Type guard for checking if the array contains numbers
@@ -11,6 +17,16 @@ export class GuardService {
       !isNaN(arr[0]) &&
       !isNaN(arr[1]) &&
       (typeof arr[2] === 'number' || arr[2] === undefined) // Optional: check the third value
+    );
+  }
+
+  // Type guard to validate GeoJSON FeatureCollection
+  public static isFeatureCollection(json: unknown): json is FeatureCollection {
+    return (
+      typeof json === 'object' &&
+      json !== null &&
+      (json as { type: string }).type === 'FeatureCollection' &&
+      Array.isArray((json as { features: unknown[] }).features)
     );
   }
 

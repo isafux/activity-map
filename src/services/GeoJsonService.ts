@@ -5,16 +5,43 @@ import { StyleService } from './StyleService';
 import type { MarkerData } from '../types/Marker';
 
 class GeoJsonService {
+  public async loadAll(): Promise<FeatureCollection[]> {
+    const manifest: Response = await fetch('/geojson/geojson-list.json');
+
+    if (!manifest.ok) {
+      console.error('Failed to load GeoJSON list manifest');
+      return [];
+    }
+
+    const fileList: unknown = await manifest.json();
+    if (!Array.isArray(fileList)) {
+      console.error('Manifest format is invalid');
+      return [];
+    }
+
+    const loadedGeoJsons: FeatureCollection[] = [];
+    for (const file of fileList) {
+      if (file && typeof file === 'string') {
+        const geoJson = await this.loadGeoJsonFile(file);
+        if (geoJson) {
+          loadedGeoJsons.push(geoJson);
+        }
+      }
+    }
+
+    return loadedGeoJsons;
+  }
+
   // Loop through each GeoJSON and create markers at the starting points
-  public async loadMarkersAndColors(
+  public async getMarkersAndBindColors(
     geoJsons: FeatureCollection<Geometry, GeoJsonProperties>[],
+    activityTypes: Set<string>,
   ): Promise<MarkerData[]> {
     const geoMarkers: MarkerData[] = [];
 
     geoJsons.forEach((geoJson) => {
       const color = StyleService.generateRandomColor(40, 60, 0.7);
 
-      // Check if features exist and have a valid starting point
       if (geoJson.features && geoJson.features.length) {
         const firstFeature = geoJson.features[0];
 
@@ -23,20 +50,24 @@ class GeoJsonService {
           firstFeature.geometry &&
           GuardService.hasCoordinates(firstFeature.geometry)
         ) {
-          const startPoint = firstFeature.geometry?.coordinates[0];
-
           if (firstFeature.properties) {
+            // assign color to feature path as well
             firstFeature.properties.color = color;
-          }
 
-          // Ensure startPoint exists
-          if (GuardService.isValidLatLngArray(startPoint)) {
-            // Create a marker at the starting point
-            geoMarkers.push({
-              latLng: [startPoint[1], startPoint[0]],
-              color: color,
-              pathIndex: firstFeature.properties?.name, // Optional: Index or name of the path
-            });
+            if (activityTypes) {
+              // extract activity type
+              activityTypes.add(firstFeature.properties.type);
+            }
+
+            const startPoint = firstFeature.geometry?.coordinates[0];
+            if (GuardService.isValidLatLngArray(startPoint)) {
+              geoMarkers.push({
+                latLng: [startPoint[1], startPoint[0]],
+                color: color,
+                pathIndex: firstFeature.properties.name,
+                activityType: firstFeature.properties.type,
+              });
+            }
           }
         }
       }
@@ -45,42 +76,12 @@ class GeoJsonService {
     return geoMarkers;
   }
 
-  public async loadAll(): Promise<FeatureCollection[]> {
-    const res: Response = await fetch('/geojson/geojson-list.json');
-
-    if (!res.ok) {
-      console.error('Failed to load GeoJSON list manifest');
-      return [];
-    }
-
-    const fileList: unknown = await res.json();
-
-    // Validate the structure of the manifest
-    if (
-      !Array.isArray(fileList) ||
-      !fileList.every((f) => typeof f === 'string')
-    ) {
-      console.error('Manifest format is invalid');
-      return [];
-    }
-
-    // Load GeoJSON files concurrently
-    const loadedGeoJsons: (FeatureCollection | null)[] = await Promise.all(
-      fileList.map((file) => this.loadGeoJsonFile(file)),
-    );
-
-    // Filter out null values using a type guard
-    return loadedGeoJsons.filter((g): g is FeatureCollection => g !== null);
-  }
-
-  // Type guard to validate GeoJSON FeatureCollection
-  private isFeatureCollection(json: unknown): json is FeatureCollection {
-    return (
-      typeof json === 'object' &&
-      json !== null &&
-      (json as { type: string }).type === 'FeatureCollection' &&
-      Array.isArray((json as { features: unknown[] }).features)
-    );
+  // Helper function to get a custom marker icon based on the color
+  public getMarkerIcon(color: string) {
+    return new L.DivIcon({
+      html: `<div style="background-color: ${color}; width: 15px; height: 15px; border-radius: 50%;"></div>`,
+      className: 'leaflet-div-icon',
+    }) as L.Icon<L.IconOptions>;
   }
 
   // Load a single GeoJSON file and validate its structure
@@ -88,16 +89,15 @@ class GeoJsonService {
     fileName: string,
   ): Promise<FeatureCollection | null> {
     try {
-      const res = await fetch(`/geojson/${fileName}`);
-      if (!res.ok) {
+      const file = await fetch(`/geojson/${fileName}`);
+      if (!file.ok) {
         throw new Error(`Failed to load ${fileName}`);
       }
 
-      const json: unknown = await res.json();
+      const json: unknown = await file.json();
 
-      // Use type guard to ensure the correct structure
-      if (this.isFeatureCollection(json)) {
-        return json; // Returning the valid FeatureCollection
+      if (GuardService.isFeatureCollection(json)) {
+        return json;
       } else {
         console.warn(`Invalid GeoJSON format in file: ${fileName}`);
         return null;
@@ -107,14 +107,6 @@ class GeoJsonService {
       console.error(`Error loading ${fileName}:`, e);
       return null;
     }
-  }
-
-  // Helper function to get a custom marker icon based on the color
-  public getMarkerIcon(color: string) {
-    return new L.DivIcon({
-      html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; pointer-events: auto;"></div>`,
-      className: 'leaflet-div-icon',
-    }) as L.Icon<L.IconOptions>;
   }
 }
 

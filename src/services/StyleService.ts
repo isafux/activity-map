@@ -1,6 +1,6 @@
 export class StyleService {
   // Generates a random vibrant color with customizable lightness bounds
-  static generateRandomColor(
+  public static generateRandomColor(
     minLightness: number = 40,
     maxLightness: number = 60,
     alpha: number = 1,

@@ -9,6 +9,12 @@ New-Item -ItemType Directory -Force -Path $outputFolder | Out-Null
 # Initialize array for manifest filenames
 $geojsonFiles = @()
 
+# Initialize counters
+$convertedCount = 0
+$existingCount = 0
+$skippedCount = 0
+$errorCount = 0
+
 # Get clean UTF-8 encoding without BOM
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
@@ -40,20 +46,25 @@ Get-ChildItem -Path $inputFolder -Filter *.gpx | ForEach-Object {
                 if ($geojsonContent.Trim().Length -gt 0) {
                     [System.IO.File]::WriteAllText($outputFile, $geojsonContent, $utf8NoBom)
                     Write-Host "✅ Converted: $($_.Name)"
+                    $geojsonFiles += $outputFileName
+                    $convertedCount++
                 } else {
                     Write-Host "⚠️ Empty output for: $($_.Name)"
+                    $skippedCount++
                 }
             } else {
                 Write-Host "⚠️ No track points in: $($_.Name), skipped"
+                $skippedCount++
             }
         } catch {
             Write-Host "❌ Error converting $($_.Name): $_"
+            $errorCount++
         }
     } else {
         Write-Host "⏭️ Skipped (exists): $outputFileName"
+        $geojsonFiles += $outputFileName
+        $existingCount++
     }
-
-    $geojsonFiles += $outputFileName
 }
 
 # Write manifest JSON (also without BOM)
@@ -64,3 +75,11 @@ try {
 } catch {
     Write-Host "❌ Error writing manifest: $_"
 }
+
+# Summary
+Write-Host "`n--- Summary ---"
+Write-Host "✅ Converted:     $convertedCount"
+Write-Host "⏭️  Existing:      $existingCount"
+Write-Host "⚠️  Skipped:       $skippedCount"
+Write-Host "❌ Errors:        $errorCount"
+Write-Host "📄 Total in manifest: $($geojsonFiles.Count)"
