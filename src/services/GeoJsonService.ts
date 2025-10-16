@@ -5,8 +5,18 @@ import { StyleService } from './StyleService';
 import type { MarkerData } from '../types/Marker';
 
 class GeoJsonService {
-  public async loadAll(): Promise<FeatureCollection[]> {
-    const manifest: Response = await fetch('/geojson/geojson-list.json');
+  /**
+   * Load all GeoJSON files declared in a given manifest file
+   *
+   * @param [folderPath='/geojson'] - The folder holding the GeoJSON files and the manifest file
+   * @param [manifestFile='geojson-list.json'] - The manifest filename incl. extension
+   * @returns All GeoJSON files as an array of
+   */
+  public async loadAllGeoJSONs(
+    folderPath: string = '/geojson',
+    manifestFile: string = 'geojson-list.json',
+  ): Promise<FeatureCollection[]> {
+    const manifest: Response = await fetch(`${folderPath}/${manifestFile}`);
 
     if (!manifest.ok) {
       console.error('Failed to load GeoJSON list manifest');
@@ -19,20 +29,26 @@ class GeoJsonService {
       return [];
     }
 
-    const loadedGeoJsons: FeatureCollection[] = [];
+    const loadedGeoJSONs: FeatureCollection[] = [];
     for (const file of fileList) {
       if (file && typeof file === 'string') {
-        const geoJson = await this.loadGeoJsonFile(file);
+        const geoJson = await this.loadGeoJsonFile(folderPath, file);
         if (geoJson) {
-          loadedGeoJsons.push(geoJson);
+          loadedGeoJSONs.push(geoJson);
         }
       }
     }
 
-    return loadedGeoJsons;
+    return loadedGeoJSONs;
   }
 
-  // Loop through each GeoJSON and create markers at the starting points
+  /**
+   * Create markers at the activity paths starting points and bind colors to the paths and markers
+   *
+   * @param geoJsons - The activities to loop through
+   * @param activityTypes - Get updated with all available types
+   * @returns The generated markers as an array
+   */
   public async getMarkersAndBindColors(
     geoJsons: FeatureCollection<Geometry, GeoJsonProperties>[],
     activityTypes: Set<string>,
@@ -55,7 +71,7 @@ class GeoJsonService {
             firstFeature.properties.color = color;
 
             if (activityTypes) {
-              // extract activity type
+              // add activity type to the set
               activityTypes.add(firstFeature.properties.type);
             }
 
@@ -76,35 +92,48 @@ class GeoJsonService {
     return geoMarkers;
   }
 
-  // Helper function to get a custom marker icon based on the color
-  public getMarkerIcon(color: string) {
+  /**
+   * Get a custom marker icon based on the color
+   *
+   * @param color - The color of the marker
+   * @returns The marker icon as a leaflet-div-icon
+   */
+  public getMarkerIcon(color: string): L.Icon<L.IconOptions> {
     return new L.DivIcon({
       html: `<div style="background-color: ${color}; width: 15px; height: 15px; border-radius: 50%;"></div>`,
-      className: 'leaflet-div-icon',
+      class: 'leaflet-div-icon',
     }) as L.Icon<L.IconOptions>;
   }
 
-  // Load a single GeoJSON file and validate its structure
+  /**
+   * Load a single GeoJSON file and validate its structure
+   *
+   * @param file - The GeoJSON's file
+   * @returns The valid GeoJSON or null
+   */
   private async loadGeoJsonFile(
-    fileName: string,
+    folderPath: string,
+    file: string,
   ): Promise<FeatureCollection | null> {
+    const filepath = `${folderPath}/${file}`;
+
     try {
-      const file = await fetch(`/geojson/${fileName}`);
+      const file = await fetch(filepath);
       if (!file.ok) {
-        throw new Error(`Failed to load ${fileName}`);
+        throw new Error(`Failed to load ${filepath}`);
       }
 
       const json: unknown = await file.json();
-
       if (GuardService.isFeatureCollection(json)) {
         return json;
       } else {
-        console.warn(`Invalid GeoJSON format in file: ${fileName}`);
+        console.warn(`Invalid GeoJSON format in file: ${filepath}`);
+
         return null;
       }
     } catch (e) {
-      // Log the error with more context (fileName) for debugging
-      console.error(`Error loading ${fileName}:`, e);
+      console.error(`Error loading ${filepath}:`, e);
+
       return null;
     }
   }

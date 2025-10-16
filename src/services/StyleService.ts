@@ -23,4 +23,13 @@ export class StyleService {
     // Return the HSL color as a string
     return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
   }
+
+  public static geoActivityStyle(feature?: GeoJSON.Feature): L.PathOptions {
+    const color = feature?.properties?.color || '#33eedd';
+    return {
+      color: color,
+      weight: 3,
+      opacity: 0.5,
+    };
+  }
 }

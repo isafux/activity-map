@@ -30,13 +30,21 @@ export class FormatService {
   }
 
   /**
-   * Capitalizes the first letter of a given string.
+   * Transforms a string by replacing underscores with spaces
+   * and capitalizing the first letter of each resulting word.
+   *
+   * Example:
+   *   "trail_running" => "Trail Running"
    *
    * @param text - The text to be transformed
    * @returns The formatted text string
    */
-  public static capitalizeFirstLetter(text: string): string {
+  public static capitalizeFirstLetters(text: string): string {
     if (!text) return text;
-    return text.charAt(0).toUpperCase() + text.slice(1);
+
+    return text
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 }

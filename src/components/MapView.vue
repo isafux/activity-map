@@ -12,29 +12,24 @@
   import type { FeatureCollection, GeoJSON } from 'geojson';
   import { geoJsonService } from '../services/GeoJsonService';
   import { FormatService } from '../services/FormatService';
+  import { StyleService } from '../services/StyleService';
 
   import type { MarkerData } from '../types/Marker';
 
+  // Map default settings
   let zoom = ref(13);
   let center = ref([47.27597672492266, 11.447581071406603]);
 
-  const geoJsonStyle = (feature?: GeoJSON.Feature): L.PathOptions => {
-    const color = feature?.properties?.color || '#33eedd';
-    return {
-      color: color,
-      weight: 3,
-      opacity: 0.5,
-    };
-  };
-
-  const geoJsonData = ref<FeatureCollection[]>([]);
+  // Activity paths + style
+  const geoActivities = ref<FeatureCollection[]>([]);
   const filteredGeoJsonData = computed<FeatureCollection[]>(() => {
-    return geoJsonData.value.filter((geoData) => {
+    return geoActivities.value.filter((geoData) => {
       const type = geoData.features.at(0)?.properties?.type;
       return selectedActivityTypes.value.includes(type);
     });
   });
 
+  // Activity markers at starting point
   const geoMarkers = ref<MarkerData[]>([]);
   const filteredGeoMarkers = computed<MarkerData[]>(() => {
     return geoMarkers.value.filter((marker) => {
@@ -43,6 +38,7 @@
     });
   });
 
+  // Activity filters
   const activityTypes = ref<Set<string>>(new Set());
   const selectedActivityTypes = ref<string[]>([]);
   const checkAllActivityTypes = computed({
@@ -64,11 +60,11 @@
   });
 
   onMounted(async () => {
-    const geoJsons = await geoJsonService.loadAll();
+    const activities = await geoJsonService.loadAllGeoJSONs();
 
-    geoJsonData.value = geoJsons;
+    geoActivities.value = activities;
     geoMarkers.value = await geoJsonService.getMarkersAndBindColors(
-      geoJsons,
+      activities,
       activityTypes.value,
     );
   });
@@ -76,7 +72,9 @@
 
 <template>
   <main>
-    <div class="filter-activity-wrapper absolute">
+    <div
+      class="filter-activity-wrapper absolute top-2 right-2 z-401 bg-teal-900 p-3"
+    >
       <template
         v-for="type in activityTypes"
         :key="type"
@@ -85,14 +83,20 @@
           :inputId="`checkbox-${type}`"
           :value="type"
           v-model="selectedActivityTypes"
+          class="mr-2"
         />
-        <label :for="`checkbox-${type}`">{{ type }}</label>
+        <label
+          :for="`checkbox-${type}`"
+          class="mr-2"
+          >{{ FormatService.capitalizeFirstLetters(type) }}</label
+        >
       </template>
       <Checkbox
         :inputId="'checkbox-all'"
         :value="'all'"
         v-model="checkAllActivityTypes"
         binary
+        class="mr-2"
       />
       <label :for="'checkbox-all'">All</label>
     </div>
@@ -119,7 +123,7 @@
         v-for="(geojson, index) in filteredGeoJsonData"
         :key="index"
         :geojson="geojson"
-        :optionsStyle="geoJsonStyle(geojson.features.at(0))"
+        :optionsStyle="StyleService.geoActivityStyle(geojson.features.at(0))"
       >
         <LTooltip>
           <p>{{ geojson.features.at(0)?.properties?.name }}</p>
@@ -140,6 +144,6 @@
 <style scoped>
   main {
     width: 100%;
-    height: calc(100vh - 25px);
+    height: 100vh;
   }
 </style>
