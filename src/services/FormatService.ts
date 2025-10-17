@@ -47,4 +47,14 @@ export class FormatService {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
+
+  /**
+   * Formats camelCase into a readable label.
+   *
+   * @param key
+   * @returns The formatted key
+   */
+  public static formatLabel(key: string): string {
+    return key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+  }
 }

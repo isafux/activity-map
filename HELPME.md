@@ -1,18 +1,35 @@
 # Tips and Tricks for efficient programming
 
-## PowerShell
-
-### Scripts
-
-#### Search command history
-
-```ps
-Get-Content (Get-PSReadlineOption).HistorySavePath | ? { $_ -like '*my search string*' }
-```
+This document is a living collection of helpful information about things like [settings](#settings), [extensions](#extensions) and [shortcuts](#shortcuts) for working more efficient on a variety of projects in **VSCode**.
 
 ## VSCode
 
+### Extensions
+
+- Code Spell Checker
+- Debugger for Firefox
+- ESLint
+- Git History
+- HTML CSS Support
+- Markdown Checkboxes
+- markdownlint
+- npm Intellisense
+- PowerShell
+
+### Settings
+
+```json
+"editor.linkedEditing": true
+```
+
 ### Shortcuts
+
+#### General
+
+| Action | Shortcut |
+| --- | --- |
+| Rename all instances | F2 |
+| Open 'Run Command' | Ctrl + Shift + P |
 
 #### Markdown
 
@@ -21,9 +38,32 @@ Get-Content (Get-PSReadlineOption).HistorySavePath | ? { $_ -like '*my search st
 | Open preview | Ctrl + Shift + V |
 | Show markdown preview | Ctrl + K V |
 
+### Issues
+
+- **Modules cannot be found (anymore)** <br>
+*Solution:* Run VSCode Command "Developer: Reload Window"
+
+## PowerShell
+
+### PS Scripts
+
+#### Search command history
+
+```ps
+Get-Content (Get-PSReadlineOption).HistorySavePath | ? { $_ -like '*my search string*' }
+```
+
 ## npm
 
-### Run Scripts
+### CLI Commands
+
+#### TailwindCSS
+
+- initialize and watch:
+
+```powershell
+npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --watch
+```
 
 #### Concurrently
 
@@ -40,12 +80,3 @@ Get-Content (Get-PSReadlineOption).HistorySavePath | ? { $_ -like '*my search st
   "watch": "npx @tailwindcss/cli -i ./src/style.css -o ./src/output.css --watch"
 }
 ```
-
-## ToDos
-
-- [ ] Add SCSS to Vue.js project
-- [ ] Add "rename variable/classname/etc. functionality" to VSCode
-- [ ] Style activity filter section
-- [ ] Switch maps origins
-- [ ] Introduce Dependency Injection
-- [ ] Color by activity types

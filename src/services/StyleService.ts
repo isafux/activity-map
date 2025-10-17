@@ -29,7 +29,7 @@ export class StyleService {
     return {
       color: color,
       weight: 3,
-      opacity: 0.5,
+      opacity: 0.75,
     };
   }
 }

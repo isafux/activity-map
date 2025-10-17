@@ -1,0 +1,7 @@
+{
+    "stadiaMaps": "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
+    "EsriWorldImagery": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    "openStreetMap": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "openStreetMapHot": "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+    "CartoLight": "https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png"
+}

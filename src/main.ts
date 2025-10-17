@@ -8,7 +8,14 @@ import Aura from '@primeuix/themes/aura';
 import 'tailwindcss-primeui';
 import 'primeicons/primeicons.css';
 import { Form } from '@primevue/forms';
-import { InputText, Button, Checkbox, CheckboxGroup, Message } from 'primevue';
+import {
+  InputText,
+  Button,
+  Checkbox,
+  CheckboxGroup,
+  Message,
+  Select,
+} from 'primevue';
 
 const app = createApp(App);
 // app.use(PrimeVue, { unstyled: true });
@@ -29,5 +36,6 @@ app.component('Button', Button);
 app.component('Checkbox', Checkbox);
 app.component('CheckboxGroup', CheckboxGroup);
 app.component('Message', Message);
+app.component('Select', Select);
 
 app.mount('#app');

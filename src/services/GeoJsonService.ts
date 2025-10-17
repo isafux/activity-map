@@ -92,6 +92,8 @@ class GeoJsonService {
     return geoMarkers;
   }
 
+  public getAllTileURLs() {}
+
   /**
    * Get a custom marker icon based on the color
    *
