@@ -87,9 +87,7 @@
     </Select>
   </div>
 
-  <div
-    class="filter-activity-wrapper absolute top-3 right-3 ml-14 z-401 bg-teal-900 rounded-md p-3 flex flex-wrap gap-4"
-  >
+  <div class="filter-activity-wrapper absolute top-3 right-3 ml-14 z-401">
     <ActivityFilter
       :activity-types="activityTypes"
       v-model:selected-activity-types="selectedActivityTypes"

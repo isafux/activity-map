@@ -2,3 +2,11 @@
     background: transparent !important;
     border: none !important;
   }
+
+  .p-progressspinner {
+    svg circle {
+      stroke-width: 8px !important;
+      fill: transparent;
+      animation-duration: '1s';
+    }
+  }

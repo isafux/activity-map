@@ -33,37 +33,47 @@
 </script>
 
 <template>
-  <template v-if="activityTypes.size">
-    <template
-      v-for="type in activityTypes"
-      :key="type"
-    >
+  <div class="flex flex-col gap-1 bg-teal-900 rounded-md px-4 py-3">
+    <template v-if="activityTypes.size">
       <div class="filter">
         <Checkbox
-          :inputId="`checkbox-${type}`"
-          :value="type"
-          v-model="selectedActivityTypes"
+          :inputId="'checkbox-all'"
+          :value="'all'"
+          v-model="checkAllActivityTypes"
+          binary
           class="mr-2"
         />
-        <label
-          :for="`checkbox-${type}`"
-          class="color-white-100"
-          >{{ FormatService.capitalizeFirstLetters(type) }}</label
-        >
+        <label :for="'checkbox-all'">All</label>
       </div>
+      <template
+        v-for="type in activityTypes"
+        :key="type"
+      >
+        <div class="filter">
+          <Checkbox
+            :inputId="`checkbox-${type}`"
+            :value="type"
+            v-model="selectedActivityTypes"
+            class="mr-2"
+          />
+          <label
+            :for="`checkbox-${type}`"
+            class="color-white-100"
+            >{{ FormatService.capitalizeFirstLetters(type) }}</label
+          >
+        </div>
+      </template>
     </template>
-    <div class="filter">
-      <Checkbox
-        :inputId="'checkbox-all'"
-        :value="'all'"
-        v-model="checkAllActivityTypes"
-        binary
-        class="mr-2"
-      />
-      <label :for="'checkbox-all'">All</label>
-    </div>
-  </template>
-  <template v-else> Loading... <ProgressSpinner /> </template>
+    <template v-else>
+      Loading... <ProgressSpinner aria-label="loading" />
+    </template>
+  </div>
 </template>
+^
 
-<style scoped></style>
+<style scoped>
+  .p-progressspinner {
+    width: 30px;
+    height: 30px;
+  }
+</style>
