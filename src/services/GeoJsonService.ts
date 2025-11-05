@@ -43,19 +43,21 @@ class GeoJsonService {
   }
 
   /**
-   * Create markers at the activity paths starting points and bind colors to the paths and markers
+   * Create markers at activity paths starting points.
+   * Bind colors to paths and markers.
+   * Determine set of activity types.
    *
-   * @param geoJsons - The activities to loop through
-   * @param activityTypes - Get updated with all available types
+   * @param geoJSONs - The activities to loop through
+   * @param activityTypes - This set gets updated with all available activity types
    * @returns The generated markers as an array
    */
-  public async getMarkersAndBindColors(
-    geoJsons: FeatureCollection<Geometry, GeoJsonProperties>[],
+  public async extractActivityData(
+    geoJSONs: FeatureCollection<Geometry, GeoJsonProperties>[],
     activityTypes: Set<string>,
   ): Promise<MarkerData[]> {
     const geoMarkers: MarkerData[] = [];
 
-    geoJsons.forEach((geoJson) => {
+    geoJSONs.forEach((geoJson) => {
       const color = StyleService.generateRandomColor(40, 60, 0.7);
 
       if (geoJson.features && geoJson.features.length) {

@@ -16,7 +16,7 @@
   LTooltip.name = 'LTooltip';
   LGeoJson.name = 'LGeoJson';
 
-  import type { FeatureCollection, GeoJSON } from 'geojson';
+  import type { FeatureCollection } from 'geojson';
   import { geoJsonService } from '../services/GeoJsonService';
   import { FormatService } from '../services/FormatService';
   import { StyleService } from '../services/StyleService';
@@ -25,6 +25,7 @@
   import type { TileServerMap } from '../types/TileServerMap';
   import tileServersJSON from '../assets/tileServerURLs.json';
   import type { PointTuple } from 'leaflet';
+  import ActivityFilter from './ActivityFilter.vue';
 
   const tileServers = tileServersJSON as TileServerMap;
   const tileOptions = Object.entries(tileServers).map(([key, url]) => ({
@@ -62,29 +63,12 @@
   // Activity filters
   const activityTypes = ref<Set<string>>(new Set());
   const selectedActivityTypes = ref<string[]>([]);
-  const checkAllActivityTypes = computed({
-    get() {
-      return (
-        activityTypes.value.size > 0 &&
-        selectedActivityTypes.value.length === activityTypes.value.size
-      );
-    },
-    set(isChecked) {
-      if (isChecked) {
-        // If "All" is checked, add all activity types to selectedActivityTypes
-        selectedActivityTypes.value = [...activityTypes.value];
-      } else {
-        // If "All" is unchecked, clear selectedActivityTypes
-        selectedActivityTypes.value = [];
-      }
-    },
-  });
 
   onMounted(async () => {
     const activities = await geoJsonService.loadAllGeoJSONs();
 
     geoActivities.value = activities;
-    geoMarkers.value = await geoJsonService.getMarkersAndBindColors(
+    geoMarkers.value = await geoJsonService.extractActivityData(
       activities,
       activityTypes.value,
     );
@@ -102,38 +86,16 @@
     >
     </Select>
   </div>
+
   <div
     class="filter-activity-wrapper absolute top-3 right-3 ml-14 z-401 bg-teal-900 rounded-md p-3 flex flex-wrap gap-4"
   >
-    <template
-      v-for="type in activityTypes"
-      :key="type"
-    >
-      <div class="filter">
-        <Checkbox
-          :inputId="`checkbox-${type}`"
-          :value="type"
-          v-model="selectedActivityTypes"
-          class="mr-2"
-        />
-        <label
-          :for="`checkbox-${type}`"
-          class="color-white-100"
-          >{{ FormatService.capitalizeFirstLetters(type) }}</label
-        >
-      </div>
-    </template>
-    <div class="filter">
-      <Checkbox
-        :inputId="'checkbox-all'"
-        :value="'all'"
-        v-model="checkAllActivityTypes"
-        binary
-        class="mr-2"
-      />
-      <label :for="'checkbox-all'">All</label>
-    </div>
+    <ActivityFilter
+      :activity-types="activityTypes"
+      v-model:selected-activity-types="selectedActivityTypes"
+    />
   </div>
+
   <main>
     <LMap
       v-model:zoom="zoom"

@@ -8,6 +8,7 @@
 ## Project
 
 - [ ] Style activity filter section
-- [ ] Switch maps origins
-- [ ] Introduce Dependency Injection
-- [ ] Color by activity types
+- [ ] Extract activity filter section into new component
+- [x] Switch maps origins
+- [ ] Introduce Dependency Injection (e.g. for Services)
+- [ ] Color paths and their start points by activity types

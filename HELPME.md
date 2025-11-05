@@ -40,7 +40,7 @@ This document is a living collection of helpful information about things like [s
 
 ### Issues
 
-- **Modules cannot be found (anymore)** <br>
+- **Modules cannot be found (anymore)** \
 *Solution:* Run VSCode Command "Developer: Reload Window"
 
 ## PowerShell
