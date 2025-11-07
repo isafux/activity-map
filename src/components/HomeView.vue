@@ -6,4 +6,8 @@
   </div>
 </template>
 
-<style scoped></style>
+<style lang="scss" scoped>
+  h1 {
+    color: $brand-color;
+  }
+</style>

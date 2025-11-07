@@ -3,8 +3,8 @@
   import { computed } from 'vue';
   import { FormatService } from '../services/FormatService';
 
-  const { activityTypes = new Set() } = defineProps<{
-    activityTypes: Set<string>;
+  const { allActivityTypes: activityTypes = new Set() } = defineProps<{
+    allActivityTypes: Set<string>;
   }>();
 
   const selectedActivityTypes = defineModel<string[]>('selectedActivityTypes');
@@ -33,7 +33,7 @@
 </script>
 
 <template>
-  <div class="flex flex-col gap-1 bg-teal-900 rounded-md px-4 py-3">
+  <div class="flex flex-col gap-1 bg-teal-900 rounded-md pl-4 pr-5 py-3">
     <template v-if="activityTypes.size">
       <div class="filter">
         <Checkbox

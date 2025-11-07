@@ -61,7 +61,7 @@
   });
 
   // Activity filters
-  const activityTypes = ref<Set<string>>(new Set());
+  const allActivityTypes = ref<Set<string>>(new Set());
   const selectedActivityTypes = ref<string[]>([]);
 
   onMounted(async () => {
@@ -70,13 +70,20 @@
     geoActivities.value = activities;
     geoMarkers.value = await geoJsonService.extractActivityData(
       activities,
-      activityTypes.value,
+      allActivityTypes.value,
     );
   });
 </script>
 
 <template>
-  <div class="map-selection-wrapper absolute bottom-3 left-3 ml-3 z-401">
+  <div class="activity-filter-wrapper absolute top-3 right-3 z-401">
+    <ActivityFilter
+      :allActivityTypes
+      v-model:selected-activity-types="selectedActivityTypes"
+    />
+  </div>
+
+  <div class="map-selection-wrapper absolute bottom-3 left-3 z-401">
     <Select
       v-model="selectedTileKey"
       :options="tileOptions"
@@ -85,13 +92,6 @@
       placeholder="Select Tile Layer"
     >
     </Select>
-  </div>
-
-  <div class="activity-filter-wrapper absolute top-3 right-3 ml-14 z-401">
-    <ActivityFilter
-      :activity-types="activityTypes"
-      v-model:selected-activity-types="selectedActivityTypes"
-    />
   </div>
 
   <main>
