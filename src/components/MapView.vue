@@ -76,7 +76,7 @@
 </script>
 
 <template>
-  <div class="tileURL-selection-wrapper absolute bottom-3 eft-3 ml-3 z-401">
+  <div class="map-selection-wrapper absolute bottom-3 left-3 ml-3 z-401">
     <Select
       v-model="selectedTileKey"
       :options="tileOptions"
@@ -87,7 +87,7 @@
     </Select>
   </div>
 
-  <div class="filter-activity-wrapper absolute top-3 right-3 ml-14 z-401">
+  <div class="activity-filter-wrapper absolute top-3 right-3 ml-14 z-401">
     <ActivityFilter
       :activity-types="activityTypes"
       v-model:selected-activity-types="selectedActivityTypes"

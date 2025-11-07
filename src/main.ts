@@ -16,8 +16,11 @@ import {
   Message,
   Select,
 } from 'primevue';
+import router from './router';
 
 const app = createApp(App);
+app.use(router);
+
 // app.use(PrimeVue, { unstyled: true });
 app.use(PrimeVue, {
   theme: {
