@@ -19,6 +19,16 @@ import {
 import router from './router';
 
 const app = createApp(App);
+
+// Global error handler
+app.config.errorHandler = (error, instance, info) => {
+  console.error('Global error:', error);
+  console.log('Vue instance:', instance);
+  console.log('Error info:', info);
+
+  // Add code for UI notifications, reporting or other error handling logic
+};
+
 app.use(router);
 
 // app.use(PrimeVue, { unstyled: true });
