@@ -4,6 +4,9 @@ import { GuardService } from './GuardService';
 import { StyleService } from './StyleService';
 import type { MarkerData } from '../types/Marker';
 
+/**
+ * Refactor to composable
+ */
 class GeoJsonService {
   /**
    * Load all GeoJSON files declared in a given manifest file
