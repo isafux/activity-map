@@ -108,7 +108,7 @@ class GeoJsonService {
   public getMarkerIcon(color: string): L.Icon<L.IconOptions> {
     return new L.DivIcon({
       html: `<div style="background-color: ${color}; width: 15px; height: 15px; border-radius: 50%;"></div>`,
-      class: 'leaflet-div-icon',
+      className: 'leaflet-div-icon',
     }) as L.Icon<L.IconOptions>;
   }
 

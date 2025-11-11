@@ -24,7 +24,7 @@
 
   const menu = ref();
 
-  const toggle = (event: any) => {
+  const toggleMenu = (event: any) => {
     menu.value.toggle(event);
   };
 </script>
@@ -34,7 +34,7 @@
     <Button
       type="button"
       icon="pi pi-bars"
-      @click="toggle"
+      @click="toggleMenu"
       aria-haspopup="true"
       aria-controls="overlay_menu"
     />

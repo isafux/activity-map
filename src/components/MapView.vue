@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onErrorCaptured, onMounted, ref } from 'vue';
   import 'leaflet/dist/leaflet.css';
   import {
     LMap,
@@ -27,6 +27,8 @@
   import type { PointTuple } from 'leaflet';
   import ActivityFilter from './ActivityFilter.vue';
 
+  const errorMessage = ref('');
+
   const tileServers = tileServersJSON as TileServerMap;
   const tileOptions = Object.entries(tileServers).map(([key, url]) => ({
     key,
@@ -47,6 +49,7 @@
   const filteredGeoJsonData = computed<FeatureCollection[]>(() => {
     return geoActivities.value.filter((geoData) => {
       const type = geoData.features.at(0)?.properties?.type;
+
       return selectedActivityTypes.value.includes(type);
     });
   });
@@ -56,6 +59,7 @@
   const filteredGeoMarkers = computed<MarkerData[]>(() => {
     return geoMarkers.value.filter((marker) => {
       const type = marker.activityType;
+
       return selectedActivityTypes.value.includes(type);
     });
   });
@@ -72,6 +76,12 @@
       activities,
       allActivityTypes.value,
     );
+  });
+
+  onErrorCaptured((error) => {
+    errorMessage.value = 'An error occurred: ' + error.message;
+
+    return false;
   });
 </script>
 
@@ -117,7 +127,9 @@
         v-for="(geojson, index) in filteredGeoJsonData"
         :key="index"
         :geojson="geojson"
-        :optionsStyle="StyleService.geoActivityStyle(geojson.features.at(0))"
+        :optionsStyle="
+          () => StyleService.geoActivityStyle(geojson.features.at(0))
+        "
       >
         <LTooltip>
           <div class="tooltip-content px-2 py-1">
