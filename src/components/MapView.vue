@@ -7,6 +7,7 @@
     LGeoJson,
     LMarker,
     LTooltip,
+    LImageOverlay,
   } from '@vue-leaflet/vue-leaflet';
 
   // explicit naming of components for Vue Dev Tools
@@ -15,6 +16,7 @@
   LMarker.name = 'LMarker';
   LTooltip.name = 'LTooltip';
   LGeoJson.name = 'LGeoJson';
+  LImageOverlay.name = 'LImageOverlay';
 
   import type { FeatureCollection } from 'geojson';
   import { geoJsonService } from '../services/GeoJsonService';
@@ -67,6 +69,13 @@
   // Activity filters
   const allActivityTypes = ref<Set<string>>(new Set());
   const selectedActivityTypes = ref<string[]>([]);
+
+  // image overlay bounds (southWest, northEast)
+  // using L.latLngBounds() didn't work properly (bounds didn't get set)
+  const imageOverlayCorners: [[number, number], [number, number]] = [
+    [40.799311, -74.118464],
+    [40.68202047785919, -74.33],
+  ];
 
   onMounted(async () => {
     const activities = await geoJsonService.loadAllGeoJSONs();
@@ -147,6 +156,14 @@
           </div>
         </LTooltip>
       </LGeoJson>
+      <LImageOverlay
+        url="https://maps.lib.utexas.edu/maps/historical/newark_nj_1922.jpg"
+        error-overlay-url="https://cdn-icons-png.flaticon.com/512/110/110686.png"
+        alt="My Alt Text"
+        :opacity="0.8"
+        :interactive="true"
+        :bounds="imageOverlayCorners"
+      />
     </LMap>
   </main>
 </template>
