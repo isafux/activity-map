@@ -23,8 +23,7 @@
   ]);
 
   const menu = ref();
-
-  const toggleMenu = (event: any) => {
+  const toggleMenu = (event: MouseEvent) => {
     menu.value.toggle(event);
   };
 </script>
@@ -48,10 +47,10 @@
           v-if="item.route"
           v-slot="{ href, navigate }"
           :to="item.route"
+          :key="item.route"
           custom
         >
           <a
-            v-ripple
             :href="href"
             v-bind="props.action"
             @click="navigate"
