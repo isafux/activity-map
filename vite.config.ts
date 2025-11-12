@@ -5,6 +5,7 @@ import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
+  base: '/activity-map/',
   css: {
     preprocessorOptions: {
       scss: {
